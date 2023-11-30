@@ -1,7 +1,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include "first_app.h"
+#include "FirstApp.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -9,7 +9,7 @@
 
 int main() 
 {
-	lve::FirstApp app{};
+	VulkanLearn::FirstApp app{};
 
 	try
 	{

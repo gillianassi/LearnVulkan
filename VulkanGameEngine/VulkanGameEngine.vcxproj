@@ -133,13 +133,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="first_app.cpp" />
-    <ClCompile Include="lve_window.cpp" />
+    <ClCompile Include="FirstApp.cpp" />
+    <ClCompile Include="VLPipeline.cpp" />
+    <ClCompile Include="VLWindow.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="VLDevice.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="first_app.h" />
-    <ClInclude Include="lve_window.h" />
+    <ClInclude Include="FirstApp.h" />
+    <ClInclude Include="VLPipeline.h" />
+    <ClInclude Include="VLWindow.h" />
+    <ClInclude Include="VLDevice.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Compile.bat" />
+    <None Include="Shaders\TestShader.frag" />
+    <None Include="Shaders\TestShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
