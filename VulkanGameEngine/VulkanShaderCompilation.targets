@@ -1,0 +1,40 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Define shader source files -->
+  <ItemGroup>
+	  <ShaderFiles Include="$(ProjectDir)Shaders\*.vert"/>
+      <ShaderFiles Include="$(ProjectDir)Shaders\*.frag"/>
+  </ItemGroup>
+
+  <!-- Determine the Output Directory for the compiled shaders -->
+  <ItemGroup>
+    <BinShaderOutPath Include="$(OutDir)Shaders\%(RecursiveDir)" />
+  </ItemGroup>
+
+
+	<ItemGroup>
+		<CurrentOutputFiles Include="$(BinShaderOutPath)%(ShaderFiles.RelativeDir)%(ShaderFiles.Filename)%(ShaderFiles.Extension).spv" />
+	</ItemGroup>
+	
+	<!-- Define a common target for GLSL shaders -->
+  <Target Name="CompileShader" BeforeTargets="ClCompile" Inputs="@(ShaderFiles)" Outputs="@(CurrentOutputFiles)">
+	<!-- Log the shaders to be compiled -->
+    <Message Importance="High" Text="Shader files to compile: @(ShaderFiles)" />
+	  
+    <!-- Log the shader file being compiled -->
+    <Message Importance="High" Text="Compiling shaders: @(ShaderFiles->'%(RelativeDir)%(Filename)%(Extension)')" />
+
+    <!-- Compile the shaders with the correct language specified -->
+    <Exec Command='"$(VULKAN_SDK)\Bin\glslc.exe" -x glsl "%(ShaderFiles.Identity)" -o "%(ShaderFiles.RootDir)%(ShaderFiles.Directory)%(Filename)%(Extension).spv"'>
+      <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+    </Exec>
+    <Message Importance="High" Text="Exit Code: $(ErrorCode)" />
+    <Error Condition="$(ErrorCode) != 0" Text="Shader compilation failed." />
+	  <!-- Declare output files -->
+
+	<ItemGroup>
+		<ShaderOutputFiles Include="$(BinShaderOutPath)%(ShaderFiles.RelativeDir)%(ShaderFiles.Filename)%(ShaderFiles.Extension).spv" />
+	</ItemGroup>
+    <!-- Copy compiled shaders to the output directory -->
+    <Copy SourceFiles="@(ShaderOutputFiles)" DestinationFolder="$(OutDir)Shaders\" />
+  </Target>
+</Project>

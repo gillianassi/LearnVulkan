@@ -33,6 +33,9 @@
     <ClCompile Include="VLDevice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VLSwapChain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VLPipeline.h">
@@ -47,16 +50,23 @@
     <ClInclude Include="VLDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VLSwapChain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\TestShader.vert">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Compile.bat">
+    <None Include="Shaders\Compile_Shaders.bat">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="VulkanShaderCompilation.targets" />
     <None Include="Shaders\TestShader.frag">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="Shaders\TestShader.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="XMLFile.xml" />
   </ItemGroup>
 </Project>

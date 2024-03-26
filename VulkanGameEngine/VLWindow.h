@@ -20,6 +20,7 @@ namespace VulkanLearn
 
 		bool ShouldClose();
 		void CreateWindowSufrace(VkInstance Instance, VkSurfaceKHR* Surface);
+		VkExtent2D GetExtend() { return { static_cast<uint32_t>(Width), static_cast<uint32_t>(Height) }; }
 
 	private:
 

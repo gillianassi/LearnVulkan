@@ -9,7 +9,7 @@
 
 int main() 
 {
-	VulkanLearn::FirstApp app{};
+	FirstApp app{};
 
 	try
 	{
