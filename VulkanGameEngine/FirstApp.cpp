@@ -5,6 +5,7 @@
 
 FirstApp::FirstApp()
 {
+	LoadModels();
 	CreatePipelineLayout();
 	CreatePipeline();
 	CreateCommandBuffers();
@@ -25,6 +26,17 @@ void FirstApp::run()
 
 	// Wait until all GPU operations have been completed before ending the run
 	vkDeviceWaitIdle(AppDevice.GetDevice());
+}
+
+void FirstApp::LoadModels()
+{
+	std::vector<VulkanLearn::VLModel::Vertex> vertices{
+		{{0.0f, -0.5f}},
+		{{0.5f, 0.5f}},
+		{{-0.5f, 0.5f}}
+	};
+
+	AppModel = std::make_unique<VulkanLearn::VLModel>(AppDevice, vertices);
 }
 
 void FirstApp::CreatePipelineLayout()
@@ -104,8 +116,8 @@ void FirstApp::CreateCommandBuffers()
 		vkCmdBeginRenderPass(CommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		AppPipeline->Bind(CommandBuffers[i]);
-		// Draw 3 vertices in 1 instance
-		vkCmdDraw(CommandBuffers[i], 3, 1, 0, 0);
+		AppModel->Bind(CommandBuffers[i]);
+		AppModel->Draw(CommandBuffers[i]);
 
 		vkCmdEndRenderPass(CommandBuffers[i]);
 		if (vkEndCommandBuffer(CommandBuffers[i]) != VK_SUCCESS)

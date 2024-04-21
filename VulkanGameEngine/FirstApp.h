@@ -3,10 +3,14 @@
 #include <memory>
 #include <vector>
 
+#include <memory>
+#include <vector>
+
 #include "VLWindow.h"
 #include "VLPipeline.h"
 #include "VLDevice.h"
 #include "VLSwapChain.h"
+#include "VLModel.h"
 
 class FirstApp {
 
@@ -26,6 +30,7 @@ public:
 
 private:
 
+	void LoadModels();
 	void CreatePipelineLayout();
 	void CreatePipeline();
 	void CreateCommandBuffers();
@@ -35,6 +40,9 @@ private:
 	VulkanLearn::VLDevice AppDevice{ AppWindow };
 	VulkanLearn::VLSwapChain AppSwapChain{ AppDevice , AppWindow.GetExtend() };
 	std::unique_ptr<VulkanLearn::VLPipeline> AppPipeline;
+	std::unique_ptr<VulkanLearn::VLModel> AppModel;
 	VkPipelineLayout PipelineLayout;
 	std::vector<VkCommandBuffer> CommandBuffers;
+
+
 };

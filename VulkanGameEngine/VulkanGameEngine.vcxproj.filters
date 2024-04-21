@@ -36,6 +36,9 @@
     <ClCompile Include="VLSwapChain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VLModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VLPipeline.h">
@@ -53,6 +56,9 @@
     <ClInclude Include="VLSwapChain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VLModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Compile_Shaders.bat">
@@ -65,8 +71,5 @@
     <None Include="Shaders\TestShader.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="XMLFile.xml" />
   </ItemGroup>
 </Project>

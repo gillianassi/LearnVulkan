@@ -120,6 +120,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Linking\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild>true</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,6 +161,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FirstApp.cpp" />
+    <ClCompile Include="VLModel.cpp" />
     <ClCompile Include="VLPipeline.cpp" />
     <ClCompile Include="VLSwapChain.cpp" />
     <ClCompile Include="VLWindow.cpp" />
@@ -168,6 +170,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FirstApp.h" />
+    <ClInclude Include="VLModel.h" />
     <ClInclude Include="VLPipeline.h" />
     <ClInclude Include="VLSwapChain.h" />
     <ClInclude Include="VLWindow.h" />
@@ -178,9 +181,6 @@
     <None Include="Shaders\TestShader.frag" />
     <None Include="Shaders\TestShader.vert" />
     <None Include="VulkanShaderCompilation.targets" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="XMLFile.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

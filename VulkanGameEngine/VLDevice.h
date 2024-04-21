@@ -114,4 +114,4 @@ namespace VulkanLearn {
 		const std::vector<const char*> DeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 	};
 
-}  // namespace lve
+}  // namespace VulkanLearn

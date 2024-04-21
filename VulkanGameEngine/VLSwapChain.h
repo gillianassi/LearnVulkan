@@ -79,4 +79,4 @@ class VLSwapChain {
   size_t CurrentFrame = 0;
 };
 
-}  // namespace lve
+}  // namespace VulkanLearn
