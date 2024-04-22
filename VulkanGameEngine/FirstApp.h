@@ -12,6 +12,7 @@
 #include "VLSwapChain.h"
 #include "VLModel.h"
 
+using namespace VulkanLearn;
 class FirstApp {
 
 public:
@@ -30,15 +31,16 @@ public:
 
 private:
 
+	std::vector<VulkanLearn::VLModel::Vertex> GetSierpinskiVertices(uint32_t dimension);
 	void LoadModels();
 	void CreatePipelineLayout();
 	void CreatePipeline();
 	void CreateCommandBuffers();
 	void DrawFrame();
 
-	VulkanLearn::VLWindow AppWindow{ Width, Height, "Hello Vulkan!" };
-	VulkanLearn::VLDevice AppDevice{ AppWindow };
-	VulkanLearn::VLSwapChain AppSwapChain{ AppDevice , AppWindow.GetExtend() };
+	VLWindow AppWindow{ Width, Height, "Hello Vulkan!" };
+	VLDevice AppDevice{ AppWindow };
+	VLSwapChain AppSwapChain{ AppDevice , AppWindow.GetExtend() };
 	std::unique_ptr<VulkanLearn::VLPipeline> AppPipeline;
 	std::unique_ptr<VulkanLearn::VLModel> AppModel;
 	VkPipelineLayout PipelineLayout;

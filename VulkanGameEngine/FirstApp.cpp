@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <array>
 
+
 FirstApp::FirstApp()
 {
 	LoadModels();
@@ -28,15 +29,42 @@ void FirstApp::run()
 	vkDeviceWaitIdle(AppDevice.GetDevice());
 }
 
+void RecursiveSierpinski(std::vector<VLModel::Vertex>& Vertices, uint32_t dimension,
+	const glm::vec2& Top, const glm::vec2& BottomLeft, const glm::vec2& BottomRight)
+{
+	if (dimension > 0)
+	{
+		const glm::vec2 LeftTop = 0.5f * (BottomLeft + Top);
+		const glm::vec2 RightTop = 0.5f * (Top + BottomRight);
+		const glm::vec2 BottomMiddle = 0.5f * (BottomLeft + BottomRight);
+		RecursiveSierpinski(Vertices, dimension - 1, LeftTop, BottomLeft, BottomMiddle);
+		RecursiveSierpinski(Vertices, dimension - 1, RightTop, BottomMiddle, BottomRight);
+		RecursiveSierpinski(Vertices, dimension - 1, Top, LeftTop, RightTop);
+	}
+	else
+	{
+		Vertices.push_back({ Top });
+		Vertices.push_back({ BottomRight });
+		Vertices.push_back({ BottomLeft });
+	}
+}
+
+std::vector<VLModel::Vertex> FirstApp::GetSierpinskiVertices(uint32_t dimension)
+{
+	const glm::vec2 left{-0.5f, 0.5f};
+	const glm::vec2 right{0.5f, 0.5f};
+	const glm::vec2 top{0.0f, -0.5f};
+	
+	std::vector<VulkanLearn::VLModel::Vertex> sierpinskiVector{};
+	RecursiveSierpinski(sierpinskiVector, dimension, left, right, top);
+	return sierpinskiVector;
+}
+
 void FirstApp::LoadModels()
 {
-	std::vector<VulkanLearn::VLModel::Vertex> vertices{
-		{{0.0f, -0.5f}},
-		{{0.5f, 0.5f}},
-		{{-0.5f, 0.5f}}
-	};
+	std::vector<VLModel::Vertex> vertices = GetSierpinskiVertices(8);
 
-	AppModel = std::make_unique<VulkanLearn::VLModel>(AppDevice, vertices);
+	AppModel = std::make_unique<VLModel>(AppDevice, vertices);
 }
 
 void FirstApp::CreatePipelineLayout()
@@ -57,11 +85,11 @@ void FirstApp::CreatePipelineLayout()
 
 void FirstApp::CreatePipeline()
 {
-	VulkanLearn::PipelineConfigInfo pipelineConfig = VulkanLearn::VLPipeline::DefaultPipelineConfigInfo(
+	PipelineConfigInfo pipelineConfig = VulkanLearn::VLPipeline::DefaultPipelineConfigInfo(
 		AppSwapChain.GetWidth(), AppSwapChain.GetHeight());
 	pipelineConfig.RenderPass = AppSwapChain.GetRenderPass();
 	pipelineConfig.PipelineLayout = PipelineLayout;
-	AppPipeline = std::make_unique<VulkanLearn::VLPipeline>(
+	AppPipeline = std::make_unique<VLPipeline>(
 		AppDevice,
 		"Shaders/TestShader.vert.spv",
 		"Shaders/TestShader.frag.spv",
