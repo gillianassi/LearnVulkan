@@ -416,8 +416,6 @@ namespace VulkanLearn
 	{
 		for (const auto& availableFormat : AvailableFormats) 
 		{
-			// The format used to be UNORM instead of SRGB to apply gamma encoding when it writes output to the
-			// frame buffer's color attachment. This is needed as our monitors automatically apply gamma correction.
 			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
 				availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) 
 			{

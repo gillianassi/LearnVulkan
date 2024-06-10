@@ -161,6 +161,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FirstApp.cpp" />
+    <ClCompile Include="SierpinskiTriangleApp.cpp" />
     <ClCompile Include="VLModel.cpp" />
     <ClCompile Include="VLPipeline.cpp" />
     <ClCompile Include="VLSwapChain.cpp" />
@@ -170,6 +171,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FirstApp.h" />
+    <ClInclude Include="SierpinskiTriangleApp.h" />
     <ClInclude Include="VLModel.h" />
     <ClInclude Include="VLPipeline.h" />
     <ClInclude Include="VLSwapChain.h" />

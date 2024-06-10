@@ -13,16 +13,16 @@
 #include "VLModel.h"
 
 using namespace VulkanLearn;
-class FirstApp {
+class SierpinskiTriangleApp {
 
 public:
 
-	FirstApp();
-	~FirstApp();
+	SierpinskiTriangleApp();
+	~SierpinskiTriangleApp();
 
-	FirstApp(const FirstApp&) = delete;
-	FirstApp(FirstApp&&) = delete;
-	FirstApp& operator=(const FirstApp&) = delete;
+	SierpinskiTriangleApp(const SierpinskiTriangleApp&) = delete;
+	SierpinskiTriangleApp(SierpinskiTriangleApp&&) = delete;
+	SierpinskiTriangleApp& operator=(const SierpinskiTriangleApp&) = delete;
 
 	void run();
 
@@ -30,6 +30,8 @@ public:
 	static constexpr int Height = 600;
 
 private:
+
+	std::vector<VulkanLearn::VLModel::Vertex> GetSierpinskiVertices(uint32_t dimension);
 	void LoadModels();
 	void CreatePipelineLayout();
 	void CreatePipeline();

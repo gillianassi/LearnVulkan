@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include "FirstApp.h"
+#include "SierpinskiTriangleApp.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -9,7 +10,9 @@
 
 int main() 
 {
+	// Uncomment the app you want to see
 	FirstApp app{};
+	//SierpinskiTriangleApp app{};
 
 	try
 	{

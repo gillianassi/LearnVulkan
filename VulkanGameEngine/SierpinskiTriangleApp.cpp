@@ -1,10 +1,10 @@
-#include "FirstApp.h"
+#include "SierpinskiTriangleApp.h"
 
 #include <stdexcept>
 #include <array>
 
 
-FirstApp::FirstApp()
+SierpinskiTriangleApp::SierpinskiTriangleApp()
 {
 	LoadModels();
 	CreatePipelineLayout();
@@ -12,12 +12,12 @@ FirstApp::FirstApp()
 	CreateCommandBuffers();
 }
 
-FirstApp::~FirstApp()
+SierpinskiTriangleApp::~SierpinskiTriangleApp()
 {
 	vkDestroyPipelineLayout(AppDevice.GetDevice(), PipelineLayout, nullptr);
 }
 
-void FirstApp::run()
+void SierpinskiTriangleApp::run()
 {
 	while (!AppWindow.ShouldClose())
 	{
@@ -29,18 +29,45 @@ void FirstApp::run()
 	vkDeviceWaitIdle(AppDevice.GetDevice());
 }
 
-void FirstApp::LoadModels()
+void RecursiveSierpinski(std::vector<VLModel::Vertex>& Vertices, uint32_t dimension,
+	const glm::vec2& Top, const glm::vec2& BottomLeft, const glm::vec2& BottomRight)
 {
-	std::vector<VulkanLearn::VLModel::Vertex> vertices{
-		{{0.0f, -0.5f}, {1, 0, 0}},
-		{{0.5f, 0.5f}, {0, 1, 0}},
-		{{-0.5f, 0.5f}, {0, 0, 1}}
-	};
+	if (dimension > 0)
+	{
+		const glm::vec2 LeftTop = 0.5f * (BottomLeft + Top);
+		const glm::vec2 RightTop = 0.5f * (Top + BottomRight);
+		const glm::vec2 BottomMiddle = 0.5f * (BottomLeft + BottomRight);
+		RecursiveSierpinski(Vertices, dimension - 1, LeftTop, BottomLeft, BottomMiddle);
+		RecursiveSierpinski(Vertices, dimension - 1, RightTop, BottomMiddle, BottomRight);
+		RecursiveSierpinski(Vertices, dimension - 1, Top, LeftTop, RightTop);
+	}
+	else
+	{
+		Vertices.push_back({ Top });
+		Vertices.push_back({ BottomRight });
+		Vertices.push_back({ BottomLeft });
+	}
+}
+
+std::vector<VLModel::Vertex> SierpinskiTriangleApp::GetSierpinskiVertices(uint32_t dimension)
+{
+	const glm::vec2 left{ -0.5f, 0.5f };
+	const glm::vec2 right{ 0.5f, 0.5f };
+	const glm::vec2 top{ 0.0f, -0.5f };
+
+	std::vector<VulkanLearn::VLModel::Vertex> sierpinskiVector{};
+	RecursiveSierpinski(sierpinskiVector, dimension, left, right, top);
+	return sierpinskiVector;
+}
+
+void SierpinskiTriangleApp::LoadModels()
+{
+	std::vector<VLModel::Vertex> vertices = GetSierpinskiVertices(8);
 
 	AppModel = std::make_unique<VLModel>(AppDevice, vertices);
 }
 
-void FirstApp::CreatePipelineLayout()
+void SierpinskiTriangleApp::CreatePipelineLayout()
 {
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -56,7 +83,7 @@ void FirstApp::CreatePipelineLayout()
 	}
 }
 
-void FirstApp::CreatePipeline()
+void SierpinskiTriangleApp::CreatePipeline()
 {
 	PipelineConfigInfo pipelineConfig = VulkanLearn::VLPipeline::DefaultPipelineConfigInfo(
 		AppSwapChain.GetWidth(), AppSwapChain.GetHeight());
@@ -69,7 +96,7 @@ void FirstApp::CreatePipeline()
 		pipelineConfig);
 }
 
-void FirstApp::CreateCommandBuffers()
+void SierpinskiTriangleApp::CreateCommandBuffers()
 {
 	// TODO:	For simplicity make the command buffers one-to-one in size  to the image count 
 	//			to avoid rerecording the command every frame to specify the target output frame
@@ -83,7 +110,7 @@ void FirstApp::CreateCommandBuffers()
 	allocInfo.commandBufferCount = static_cast<uint32_t>(CommandBuffers.size());
 
 	if (vkAllocateCommandBuffers(AppDevice.GetDevice(), &allocInfo, CommandBuffers.data()) !=
-		VK_SUCCESS) 
+		VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to allocate command buffers!");
 	}
@@ -128,7 +155,7 @@ void FirstApp::CreateCommandBuffers()
 	}
 }
 
-void FirstApp::DrawFrame()
+void SierpinskiTriangleApp::DrawFrame()
 {
 	uint32_t imageIndex;
 	// Note:	Fetch image we should render to next + handle CPU and GPU synchronization surrounding 
