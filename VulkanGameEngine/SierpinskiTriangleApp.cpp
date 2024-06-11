@@ -8,7 +8,7 @@ SierpinskiTriangleApp::SierpinskiTriangleApp()
 {
 	LoadModels();
 	CreatePipelineLayout();
-	CreatePipeline();
+	RecreateSwapChain();
 	CreateCommandBuffers();
 }
 
@@ -43,9 +43,9 @@ void RecursiveSierpinski(std::vector<VLModel::Vertex>& Vertices, uint32_t dimens
 	}
 	else
 	{
-		Vertices.push_back({ Top });
-		Vertices.push_back({ BottomRight });
-		Vertices.push_back({ BottomLeft });
+		Vertices.push_back({ { Top }, { 1, 1, 1 } });
+		Vertices.push_back({ { BottomRight }, { 1, 1, 1 } });
+		Vertices.push_back({ { BottomLeft }, { 1, 1, 1 } });
 	}
 }
 
@@ -83,12 +83,33 @@ void SierpinskiTriangleApp::CreatePipelineLayout()
 	}
 }
 
+void SierpinskiTriangleApp::RecreateSwapChain()
+{
+	VkExtent2D extend = AppWindow.GetExtent();
+
+	// Let the program wait while a dimension is size less (minimized)
+	while (extend.width == 0 || extend.height == 0)
+	{
+		extend = AppWindow.GetExtent();
+		glfwWaitEvents();
+	}
+
+	vkDeviceWaitIdle(AppDevice.GetDevice());
+	AppSwapChain.reset(nullptr);
+	AppSwapChain = std::make_unique<VLSwapChain>(AppDevice, extend);
+	// Note: Pipeline is Dependant on the swap chain
+	CreatePipeline();
+}
+
 void SierpinskiTriangleApp::CreatePipeline()
 {
-	PipelineConfigInfo pipelineConfig = VulkanLearn::VLPipeline::DefaultPipelineConfigInfo(
-		AppSwapChain.GetWidth(), AppSwapChain.GetHeight());
-	pipelineConfig.RenderPass = AppSwapChain.GetRenderPass();
+	assert(AppSwapChain != nullptr && "Cannot create pipeline before swap chain");
+	assert(PipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
+
+	PipelineConfigInfo pipelineConfig{};
+	pipelineConfig.RenderPass = AppSwapChain->GetRenderPass();
 	pipelineConfig.PipelineLayout = PipelineLayout;
+	VLPipeline::DefaultPipelineConfigInfo(pipelineConfig);
 	AppPipeline = std::make_unique<VLPipeline>(
 		AppDevice,
 		"Shaders/TestShader.vert.spv",
@@ -99,8 +120,8 @@ void SierpinskiTriangleApp::CreatePipeline()
 void SierpinskiTriangleApp::CreateCommandBuffers()
 {
 	// TODO:	For simplicity make the command buffers one-to-one in size  to the image count 
-	//			to avoid rerecording the command every frame to specify the target output frame
-	CommandBuffers.resize(AppSwapChain.GetImageCount());
+//			to avoid rerecording the command every frame to specify the target output frame
+	CommandBuffers.resize(AppSwapChain->GetImageCount());
 
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -114,45 +135,6 @@ void SierpinskiTriangleApp::CreateCommandBuffers()
 	{
 		throw std::runtime_error("Failed to allocate command buffers!");
 	}
-
-	for (int i = 0; i < CommandBuffers.size(); i++)
-	{
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-		if (vkBeginCommandBuffer(CommandBuffers[i], &beginInfo) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to begin recording command buffer!");
-		}
-
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = AppSwapChain.GetRenderPass();
-		renderPassInfo.framebuffer = AppSwapChain.GetFrameBuffer(i);
-
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = AppSwapChain.GetSwapChainExtent();
-
-		// In the render pass, we defined our attachments so index 0 as color and 1 as our depth
-		std::array<VkClearValue, 2> clearValues{};
-		clearValues[0].color = { 0.1f, 0.1f, 0.1f, 1.0f };
-		clearValues[1].depthStencil = { 1.0f, 0 };
-		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-		renderPassInfo.pClearValues = clearValues.data();
-
-		// Note:	VK_SUBPASS_CONTENTS_INLINE signals that the subsequent render pass commands will be 
-		//			directly embedded in the primary command buffer itself. + no secondary will be used
-		vkCmdBeginRenderPass(CommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		AppPipeline->Bind(CommandBuffers[i]);
-		AppModel->Bind(CommandBuffers[i]);
-		AppModel->Draw(CommandBuffers[i]);
-
-		vkCmdEndRenderPass(CommandBuffers[i]);
-		if (vkEndCommandBuffer(CommandBuffers[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to record command buffer!");
-		}
-	}
 }
 
 void SierpinskiTriangleApp::DrawFrame()
@@ -160,18 +142,81 @@ void SierpinskiTriangleApp::DrawFrame()
 	uint32_t imageIndex;
 	// Note:	Fetch image we should render to next + handle CPU and GPU synchronization surrounding 
 	//			double and triple buffering
-	VkResult result = AppSwapChain.AcquireNextImage(&imageIndex);
-	if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-		// TODO:	Handle this, as it can occur when window is resized
+	VkResult result = AppSwapChain->AcquireNextImage(&imageIndex);
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		RecreateSwapChain();
+		return;
+	}
+	if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+	{
 		throw std::runtime_error("Failed to acquire swap chain image!");
+	}
+
+	RecordCommandBuffer(imageIndex);
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || AppWindow.WasWindowResized())
+	{
+		AppWindow.ResetWindowResizedFlag();
+		RecreateSwapChain();
+		return;
 	}
 
 	// Note:	Submit to provided Graphics queue + Handle CPU and GPU synchronization
 	//			Command buffer will then be executed
 	//			Then the Swap chain will present associated attachment image view to the display
-	result = AppSwapChain.SubmitCommandBuffers(&CommandBuffers[imageIndex], &imageIndex);
+	result = AppSwapChain->SubmitCommandBuffers(&CommandBuffers[imageIndex], &imageIndex);
 	if (result != VK_SUCCESS) {
 		throw std::runtime_error("Failed to present swap chain image!");
+	}
+}
+
+void SierpinskiTriangleApp::RecordCommandBuffer(int imageIndex)
+{
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+	if (vkBeginCommandBuffer(CommandBuffers[imageIndex], &beginInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to begin recording command buffer!");
+	}
+
+	VkRenderPassBeginInfo renderPassInfo{};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassInfo.renderPass = AppSwapChain->GetRenderPass();
+	renderPassInfo.framebuffer = AppSwapChain->GetFrameBuffer(imageIndex);
+
+	renderPassInfo.renderArea.offset = { 0, 0 };
+	renderPassInfo.renderArea.extent = AppSwapChain->GetSwapChainExtent();
+
+	// In the render pass, we defined our attachments so index 0 as color and 1 as our depth
+	std::array<VkClearValue, 2> clearValues{};
+	clearValues[0].color = { 0.1f, 0.1f, 0.1f, 1.0f };
+	clearValues[1].depthStencil = { 1.0f, 0 };
+	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	renderPassInfo.pClearValues = clearValues.data();
+
+	// Note:	VK_SUBPASS_CONTENTS_INLINE signals that the subsequent render pass commands will be 
+	//			directly embedded in the primary command buffer itself. + no secondary will be used
+	vkCmdBeginRenderPass(CommandBuffers[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	VkViewport viewport{};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = static_cast<float>(AppSwapChain->GetSwapChainExtent().width);
+	viewport.height = static_cast<float>(AppSwapChain->GetSwapChainExtent().height);
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	VkRect2D scissor{ {0, 0}, AppSwapChain->GetSwapChainExtent() };
+	vkCmdSetViewport(CommandBuffers[imageIndex], 0, 1, &viewport);
+	vkCmdSetScissor(CommandBuffers[imageIndex], 0, 1, &scissor);
+
+	AppPipeline->Bind(CommandBuffers[imageIndex]);
+	AppModel->Bind(CommandBuffers[imageIndex]);
+	AppModel->Draw(CommandBuffers[imageIndex]);
+
+	vkCmdEndRenderPass(CommandBuffers[imageIndex]);
+	if (vkEndCommandBuffer(CommandBuffers[imageIndex]) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to record command buffer!");
 	}
 }
 

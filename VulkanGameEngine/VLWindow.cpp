@@ -38,10 +38,20 @@ namespace VulkanLearn
 		glfwInit();
 		// Don't open an OpenGL context using the GLFW_NO_API hint
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		// Don't resize after creation to handle window resizes ourselves
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 		pWindow = glfwCreateWindow(Width, Height, WindowName.c_str(), nullptr, nullptr);
+		// Pair our glfw window object with an arbitrary pointer value
+		glfwSetWindowUserPointer(pWindow, this);
+		glfwSetFramebufferSizeCallback(pWindow, FrameBufferResizedCallback);
+	}
+
+	void VLWindow::FrameBufferResizedCallback(GLFWwindow* Window, int width, int height)
+	{
+		VLWindow* ActiveWindow = reinterpret_cast<VLWindow*>(glfwGetWindowUserPointer(Window));
+		ActiveWindow->FrameBufferResized = true;
+		ActiveWindow->Width = width;
+		ActiveWindow->Height = height;
 	}
 
 }

@@ -34,13 +34,15 @@ private:
 	std::vector<VulkanLearn::VLModel::Vertex> GetSierpinskiVertices(uint32_t dimension);
 	void LoadModels();
 	void CreatePipelineLayout();
+	void RecreateSwapChain();
+	void DrawFrame();
+	void RecordCommandBuffer(int imageIndex);
 	void CreatePipeline();
 	void CreateCommandBuffers();
-	void DrawFrame();
 
 	VLWindow AppWindow{ Width, Height, "Hello Vulkan!" };
 	VLDevice AppDevice{ AppWindow };
-	VLSwapChain AppSwapChain{ AppDevice , AppWindow.GetExtend() };
+	std::unique_ptr<VLSwapChain> AppSwapChain;
 	std::unique_ptr<VulkanLearn::VLPipeline> AppPipeline;
 	std::unique_ptr<VulkanLearn::VLModel> AppModel;
 	VkPipelineLayout PipelineLayout;

@@ -9,14 +9,21 @@
 namespace VulkanLearn
 {
 	// Application layer should be able to configure our pipeline
-	struct PipelineConfigInfo {
-		VkViewport Viewport;
-		VkRect2D Scissor;
+	struct PipelineConfigInfo
+	{
+		PipelineConfigInfo(const PipelineConfigInfo&) = delete;
+		PipelineConfigInfo(PipelineConfigInfo&&) = delete;
+		PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
+		PipelineConfigInfo& operator=(PipelineConfigInfo&&) = delete;
+
+		VkPipelineViewportStateCreateInfo ViewportInfo;
 		VkPipelineInputAssemblyStateCreateInfo InputAssemblyInfo;
 		VkPipelineRasterizationStateCreateInfo RasterizationInfo;
 		VkPipelineMultisampleStateCreateInfo MultisampleInfo;
 		VkPipelineColorBlendAttachmentState ColorBlendAttachment;
 		VkPipelineDepthStencilStateCreateInfo DepthStencilInfo;
+		std::vector<VkDynamicState> DynamicStateEnables;
+		VkPipelineDynamicStateCreateInfo DynamicStateInfo;
 		VkPipelineLayout PipelineLayout = nullptr;
 		VkRenderPass RenderPass = nullptr;
 		uint32_t Subpass = 0;
@@ -30,10 +37,10 @@ namespace VulkanLearn
 
 		VLPipeline(const VLPipeline&) = delete;
 		VLPipeline(VLPipeline&&) = delete;
-		void operator=(const VLPipeline&) = delete;
-		void operator=(VLPipeline&&) = delete;
+		VLPipeline& operator=(const VLPipeline&) = delete;
+		VLPipeline& operator=(VLPipeline&&) = delete;
 
-		static PipelineConfigInfo DefaultPipelineConfigInfo(uint32_t width, uint32_t height);
+		static void DefaultPipelineConfigInfo(PipelineConfigInfo& ConfigiInfo);
 		void Bind(VkCommandBuffer Commandbuffer);
 
 	private:

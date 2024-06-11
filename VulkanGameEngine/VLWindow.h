@@ -19,15 +19,20 @@ namespace VulkanLearn
 		VLWindow& operator=(const VLWindow&) = delete;
 
 		bool ShouldClose();
+		bool WasWindowResized() { return FrameBufferResized; }
+		VkExtent2D GetExtent() { return { static_cast<uint32_t>(Width), static_cast<uint32_t>(Height) }; }
+
 		void CreateWindowSufrace(VkInstance Instance, VkSurfaceKHR* Surface);
-		VkExtent2D GetExtend() { return { static_cast<uint32_t>(Width), static_cast<uint32_t>(Height) }; }
+		void ResetWindowResizedFlag() { FrameBufferResized = false; }
 
 	private:
 
 		void InitWindow();
+		static void FrameBufferResizedCallback(GLFWwindow* Window, int width, int height);
 
-		const int Width;
-		const int Height;
+		int Width;
+		int Height;
+		bool FrameBufferResized = false;
 
 		std::string WindowName;
 		GLFWwindow* pWindow;

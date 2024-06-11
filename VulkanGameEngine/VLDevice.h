@@ -32,8 +32,8 @@ namespace VulkanLearn {
 
 		// Not copyable or movable
 		VLDevice(const VLDevice&) = delete;
-		void operator=(const VLDevice&) = delete;
 		VLDevice(VLDevice&&) = delete;
+		VLDevice& operator=(const VLDevice&) = delete;
 		VLDevice& operator=(VLDevice&&) = delete;
 
 		VkCommandPool GetCommandPool() { return CommandPool; }

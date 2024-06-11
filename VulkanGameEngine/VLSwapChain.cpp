@@ -12,17 +12,23 @@
 namespace VulkanLearn 
 {
 
-	VLSwapChain::VLSwapChain(VLDevice& deviceRef, VkExtent2D extent)
-		: Device{ deviceRef }, WindowExtent{ extent } 
+	VLSwapChain::VLSwapChain(VLDevice& DeviceRef, VkExtent2D windowExtend):
+		Device{ DeviceRef },
+		WindowExtent{ windowExtend }
 	{
-		CreateSwapChain();
-		// This describes how to access the image and which part of the image to access
-		CreateImageViews();
-		// This describes the structure and format of our frame buffer objects and their attachments
-		CreateRenderPass();
-		CreateDepthResources();
-		CreateFramebuffers();
-		CreateSyncObjects();
+		Init();
+	}
+
+	VLSwapChain::VLSwapChain(VLDevice& DeviceRef, VkExtent2D windowExtend,
+		std::shared_ptr<VLSwapChain> PreviousSwapChain):
+		Device{ DeviceRef },
+		WindowExtent{ windowExtend },
+		OldSwapChain{PreviousSwapChain}
+	{
+		Init();
+
+		// Note: old swap chain is no longer needed.
+		OldSwapChain = nullptr;
 	}
 
 	VLSwapChain::~VLSwapChain() 
@@ -133,7 +139,19 @@ namespace VulkanLearn
 		return result;
 	}
 
-	void VLSwapChain::CreateSwapChain() 
+	void VLSwapChain::Init()
+	{
+		CreateSwapChain();
+		// This describes how to access the image and which part of the image to access
+		CreateImageViews();
+		// This describes the structure and format of our frame buffer objects and their attachments
+		CreateRenderPass();
+		CreateDepthResources();
+		CreateFramebuffers();
+		CreateSyncObjects();
+	}
+
+	void VLSwapChain::CreateSwapChain()
 	{
 		SwapChainSupportDetails swapChainSupport = Device.GetSwapChainSupport();
 
@@ -195,7 +213,7 @@ namespace VulkanLearn
 
 		// Note:	Important for when the swap chain becomes invalid, will handle this in the future
 		//			For now, assume only one swap chain will be created
-		createInfo.oldSwapchain = VK_NULL_HANDLE;
+		createInfo.oldSwapchain = OldSwapChain == nullptr ? VK_NULL_HANDLE : OldSwapChain->SwapChain;
 
 		if (vkCreateSwapchainKHR(Device.GetDevice(), &createInfo, nullptr, &SwapChain) != VK_SUCCESS) 
 		{
