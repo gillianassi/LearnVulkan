@@ -1,8 +1,18 @@
 #include "FirstApp.h"
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
 #include <stdexcept>
 #include <array>
 
+// Note:	In the future, once the struct gets bigger with different uses for Shader stages, specialized structs
+//			should be created.
+struct SharedPushConstantsData
+{
+	glm::vec2 offset;
+	alignas(16) glm::vec3 color;
+};
 
 FirstApp::FirstApp()
 {
@@ -44,14 +54,20 @@ void FirstApp::LoadModels()
 
 void FirstApp::CreatePipelineLayout()
 {
+	VkPushConstantRange pushConstantRange{};
+	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	// Offset is mainly for if you are using separate ranges for different stages
+	pushConstantRange.offset = 0;
+	pushConstantRange.size = sizeof(SharedPushConstantsData);
+
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 0;
 	// Can be used to send data other than our vertex data to our shaders
 	pipelineLayoutInfo.pSetLayouts = nullptr;
 	// Can be used to Efficiently send a small amount of data to our shader programs
-	pipelineLayoutInfo.pushConstantRangeCount = 0;
-	pipelineLayoutInfo.pPushConstantRanges = nullptr;
+	pipelineLayoutInfo.pushConstantRangeCount = 1;
+	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 	if (vkCreatePipelineLayout(AppDevice.GetDevice(), &pipelineLayoutInfo, nullptr, &PipelineLayout) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create pipeline layout!");
@@ -123,6 +139,10 @@ void FirstApp::DrawFrame()
 
 void FirstApp::RecordCommandBuffer(int imageIndex)
 {
+	// TODO: Remove this simple loop setup as it is part of the push constants test 
+	static int frame = 0;
+	frame = (frame + 1) % 10000;
+
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -140,7 +160,7 @@ void FirstApp::RecordCommandBuffer(int imageIndex)
 
 	// In the render pass, we defined our attachments so index 0 as color and 1 as our depth
 	std::array<VkClearValue, 2> clearValues{};
-	clearValues[0].color = { 0.1f, 0.1f, 0.1f, 1.0f };
+	clearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
 	clearValues[1].depthStencil = { 1.0f, 0 };
 	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 	renderPassInfo.pClearValues = clearValues.data();
@@ -162,7 +182,20 @@ void FirstApp::RecordCommandBuffer(int imageIndex)
 
 	AppPipeline->Bind(CommandBuffers[imageIndex]);
 	AppModel->Bind(CommandBuffers[imageIndex]);
-	AppModel->Draw(CommandBuffers[imageIndex]);
+
+	// TODO:	Correct this piece of code
+	//			This is simply meant to test out the push constants and draw the same copy of our triangle
+	//			using different push data
+	for (uint32_t index = 0; index < 4; index++)
+	{
+		SharedPushConstantsData push{};
+		push.offset = { -0.5f + frame * 0.0002f, -0.4 + index * 0.25f };
+		push.color = { 0.0f, 0.0f, 0.2f + 0.2f * index };
+
+		vkCmdPushConstants(CommandBuffers[imageIndex], PipelineLayout,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SharedPushConstantsData), &push);
+		AppModel->Draw(CommandBuffers[imageIndex]);
+	}
 
 	vkCmdEndRenderPass(CommandBuffers[imageIndex]);
 	if (vkEndCommandBuffer(CommandBuffers[imageIndex]) != VK_SUCCESS)
